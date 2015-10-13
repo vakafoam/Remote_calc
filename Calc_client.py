@@ -9,7 +9,7 @@ import os
 import time
 
 QUAD_AXE = 7777
-OUT_BUF_SIZE = 8192
+OUT_BUF_SIZE = 10
 
 def eat_args():
     # Eat cmd args, return filename what to dump and server where to dump
