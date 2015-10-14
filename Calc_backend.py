@@ -45,10 +45,14 @@ def backend_task(server_host):
         backend_socket.send(result)
         print "Result: " + result
 
+def unregister (server_host):
+    # Ask the server to unregister backend & close socket
+    data = 'unregister backend'
+    backend_socket.send(data)
     backend_socket.close()
     print 'Connection closed'
-
 
 if __name__ == '__main__':
     server_host = eat_args()
     backend_task(server_host)
+    unregister (server_host)
