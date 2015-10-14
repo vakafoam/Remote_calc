@@ -15,43 +15,56 @@
 
 import sys
 import socket
-import os
-import time
+
 
 QUAD_AXE = 7777
-OUT_BUF_SIZE = 10
+OUT_BUF_SIZE = 512
 
 def eat_args():
-    # Eat cmd args, return filename what to dump and server where to dump
-    if len(sys.argv) <= 2:
-        sys.stderr.write(u'Usage: %s <file to dump> <dump server>\n' % sys.argv[0])
+    # User enters server host as an arg
+    if len(sys.argv) <= 1:
+        sys.stderr.write(u'Usage: %s <server host>\n' % sys.argv[0])
         sys.exit(1)
-    print "Will dump  file %s to server on %s" % (sys.argv[1],sys.argv[2])
-    return (sys.argv[1],sys.argv[2])
+    print "Will connect to the server on %s" % (sys.argv[1])
+    return (sys.argv[1])
 
-def dump_file(server_host,filename):
-    # Open file for reading
-    f = open(filename,'rb')
+def send_expr(server_host,expr):
     # Connect to server
-    client_socket = socket.create_connection((server_host,QUAD_AXE))
-    print 'Connection established, dumping ...'
+    client_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+    client_socket.create_connection((server_host,QUAD_AXE))
+    print 'Connection established ...'
 
-    # Dump loop
+    # Send loop
     n = 0
-    data = f.read(OUT_BUF_SIZE)
     while 1:
-        client_socket.send(data)
-        n += len(data)
+        client_socket.send(expr)
+        n += len(expr)
         print ' ... %d bytes sent' % n
-        if len(data) < OUT_BUF_SIZE:
+        if len(expr) < OUT_BUF_SIZE:
             break
-        data = f.read(OUT_BUF_SIZE)
-    f.close()
-    print '... finished'
+        print '... expr sent'
+    taskID = client_socket.recv()
     client_socket.close()
-    print 'Connection closed'
+    return taskID
 
+def send_req (server_host, taskID):
+    # Connect to server
+    client_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+    client_socket.create_connection((server_host,QUAD_AXE))
+    # Send request
+    print 'Sending taskID request...'
+
+    # Check loop
+    while 1:
+        client_socket.send(taskID)
+        ans = client_socket.recv()
+        if ans != 0:
+            print 'The result is: ' + str(ans)
+            client_socket.close()
+            break
 
 if __name__ == '__main__':
-    file_to_dump,dump_server = eat_args()
-    dump_file(dump_server, file_to_dump)
+    server_host = eat_args()
+    expr = raw_input('Enter your expression to solve: ')
+    taskID = send_expr(server_host,expr)
+    send_req (server_host,taskID)
