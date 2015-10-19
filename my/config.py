@@ -1,0 +1,15 @@
+# TODO: replace with class with reading from cfg file
+DEF_HOST = 'localhost'
+TASK_PORT = 7771
+RES_PORT = 7772
+PROC_PORT = 7773
+
+MAX_CON = 10
+QUEUE_SIZE = 50
+
+EXPR_MAX_SIZE = 100
+TASKID_MAX_SIZE = 50
+RES_MAX_SIZE = 50
+
+MAX_CLIENT_REQUESTS = 5
+CLIENT_TIMEOUT = 1
