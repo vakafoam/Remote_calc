@@ -76,41 +76,6 @@ if __name__ == '__main__':
         t.start()
 
 
-'''
-if __name__ == '__main__':
 
-    counter = Counter()
-    INCS = 2
-    DECS = 5
-
-    inc_procs = [Process (target = func_inc, args = (counter,)) for i in range (INCS)]
-    dec_procs = [Process (target = func_dec, args = (counter,)) for i in range (DECS)]
-    for p in inc_procs: p.start()
-    for p in dec_procs: p.start()
-
-    while 0 <= counter.value() <= 100:
-        print counter.value()
-        if counter.value() < 50:
-            print 'DEC team leads!'
-        else:
-            print 'INC team leads!'
-        time.sleep (1)
-
-        if counter.value() < 10 :
-            print 'Team INC is loosing... Release 1 more player!'
-            p = Process (target = func_inc, args = (counter,))
-            inc_procs.append(p)
-            p.start()
-
-        if counter.value() > 90:
-            print 'Team DEC is loosing... Release 1 more player!'
-            p = Process (target = func_dec, args = (counter,))
-            dec_procs.append(p)
-            p.start()
-
-
-    for p in inc_procs: p.join()
-    for p in dec_procs: p.join()
-'''
 
 
