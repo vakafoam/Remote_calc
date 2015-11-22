@@ -55,3 +55,75 @@
 
 
 # Server uses only one listening socket for both Client and Back-end types of connections.
+
+import socket
+import threading
+import Queue       # Do we need it?
+import time
+import random
+
+def init_s():
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind (('', 7777))
+    s.listen(10)
+    print 'Server started/n'
+    return s
+
+def client_proc (c,addr,mes):
+    # Processing client's message
+    if '/expr' in mes:
+        # Get the task from the message
+        task = mes.strip('/expr /client')
+        taskID = random.randint(1,10000)
+        # Put the task into tasks dict, clients in the clients dict
+        clients[(c,addr)] = taskID
+        tasks[taskID] = task
+
+    elif '/check' in mes:
+        # Check for result
+        taskID = mes.strip('/check /client')
+
+        try:
+            res = results[taskID]
+            # Send the result to client
+            c.send(res)
+        except:
+            c.send('0')
+
+def backend_proc (c,addr,mes):
+    # Processing backend's message
+    if '/subscribe' in mes:
+        # Subscribe the backend, give him task it the queue is not empty
+
+
+
+
+
+def serv_loop(s):
+    while 1:
+        c, addr = s.accept()
+        print "Client connected from: %s at %s" % (':'.join(map(str,addr)),time.asctime())
+        mes = c.recv()
+
+        # Check who is connected: client/backend
+        if '/client' in mes:
+            # Creating client Thread
+            client_t = threading.Thread (target = client_proc, name = name, args = (c,addr,mes))
+        elif '/backend' in mes:
+            # Creating backend thread
+            backend_t = threading.Thread (target = backend_proc, name = name, args = (c,addr,mes))
+
+
+
+
+
+if __name__ == '__main__':
+
+    clients = {}   # A dict of clients in the form {(c,addr):taskID}
+    tasks = {}     # A dict of tasks in the form {taskID:task}
+    results = {}   # A dict of results in the form {taskID:res}
+    threads = []   # A list of threads. Do we need it?
+
+    s = init_s()
+    serv_loop(s)
+

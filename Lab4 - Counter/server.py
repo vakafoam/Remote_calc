@@ -1,11 +1,16 @@
 import time
 import socket
 from multiprocessing import Process, Value, Lock
-import threading
+from threading import Thread
+
+host = 'localhost'
+port = 7050
+MAX_CON = 10
+
 
 class Counter:
-    def __init__ (self, ival = 50 ):
-        self.val = Value('i', ival)
+    def __init__ (self, initval = 50 ):
+        self.val = Value('i', initval)
         self.lock = Lock()
 
     def inc(self):
@@ -22,51 +27,53 @@ class Counter:
 
 def func_inc (counter):
 
-    while 0 <= counter.value() <= 100:
+    if 0 <= counter.value() <= 100:
         counter.inc()
 
 
 def func_dec (counter):
 
-    while 0 <= counter.value() <= 100:
+    if 0 <= counter.value() <= 100:
         counter.dec()
 
+def handle_client (c, addr, counter):
+    while 1:
+        try:
+            count_val = str(counter.val.value)
+            c.send (count_val)
+            data = c.recv(1024)
+            if data == 'inc':
+                func_inc(counter)
+                new_value = str(counter.val.value)
+                print 'Counter increased by %s. The current value is: %s' %(addr, new_value)
+                c.send(new_value)
+            elif data == 'dec':
+                func_dec(counter)
+                new_value = str(counter.val.value)
+                print 'Counter decreased by %s. The current value is: %s' %(addr, new_value)
+                c.send(new_value)
+            elif data == 'quit':
+                c.close()
+                print ('The client %s left.' % (addr,))
+                break
+        except:
+            print ('The connection with %s lost.' %(addr,))
+            break
 
-def handle_client (c, data, counter):
-    try:
-        if data == 'inc':
-            func_inc(counter)
-            print 'Value increased'
-            c.send('The value increased, v = %d' %counter.value())
-        elif data == 'dec':
-            func_dec(counter)
-            print 'Value decreased'
-            c.send('The value decreased, v = %d' %counter.value())
-    finally:
-        c.close()
+if __name__ == '__main__':
 
-host = 'localhost'
-port = 5050
-MAX_CON = 10
+    s_sock = socket.socket (socket.AF_INET, socket.SOCK_STREAM)
+    s_sock.bind ((host, port))
+    s_sock.listen (MAX_CON)
 
-s_sock = socket.socket (socket.AF_INET, socket.SOCK_STREAM)
-s_sock.bind ((host, port))
-s_sock.listen (MAX_CON)
+    counter = Counter()
+    procs = []
 
-counter = Counter()
-procs = []
-
-while 1:
-    c, addr = s_sock.accept()
-    print 'Connection accepted with %s' % (addr,)
-    data = c.recv(1024)
-
-    p = Process (target = handle_client, args = (c, data, counter))
-    p.start()
-    print 'Process started for %s client' % (addr,)
-    procs.append(p)
-
-for p in procs: p.join()
+    while 1:
+        c, addr = s_sock.accept()
+        print 'Connection accepted with %s' % (addr,)
+        t = Thread (target = handle_client, args = (c,addr,counter))
+        t.start()
 
 
 '''
@@ -105,4 +112,5 @@ if __name__ == '__main__':
     for p in inc_procs: p.join()
     for p in dec_procs: p.join()
 '''
+
 
